@@ -2,17 +2,11 @@ services:
   backend:
     build: ./backend
     container_name: appsking_backend
+    env_file:
+      - ./backend/.env
     environment:
       - NODE_ENV=production
       - PORT=5001
-      - DB_HOST=host.docker.internal
-      - DB_PORT=3306
-      - DB_USER=
-      - DB_PASSWORD=
-      - DB_NAME=
-      - DB_SSL=false
-      - DB_SSL_REJECT_UNAUTHORIZED=true
-      - JWT_SECRET=
       - FRONTEND_URL=https://apps.kingofficial.asia
     extra_hosts:
       - "host.docker.internal:host-gateway"
