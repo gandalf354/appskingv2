@@ -12,6 +12,8 @@ services:
       - DB_NAME=
       - JWT_SECRET=
       - FRONTEND_URL=https://apps.kingofficial.asia
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - backend_uploads:/app/uploads
     ports:

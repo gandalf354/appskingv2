@@ -67,6 +67,11 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
+    if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === '') {
+      console.log('❌ JWT_SECRET not configured');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
     // Find user (username field is actually email)
     console.log('🔍 Looking for user with email:', username);
     const users = await executeQuery(
