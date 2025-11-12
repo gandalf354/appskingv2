@@ -122,25 +122,25 @@ export default function Dashboard() {
     try {
       setLoading(true);
       const [projectsRes, categoriesRes, paymentMethodsRes, dashboardRes] = await Promise.all([
-        fetch('http://localhost:5001/api/projects?status=active&limit=1000', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects?status=active&limit=1000`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }),
-        fetch('http://localhost:5001/api/categories', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }),
-        fetch('http://localhost:5001/api/payment-methods', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment-methods`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }),
-        fetch('http://localhost:5001/api/dashboard/overview', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/overview`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ export default function Dashboard() {
     
     try {
       setLoadingProjectSummary(true);
-      const response = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${projectId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -333,8 +333,8 @@ export default function Dashboard() {
       console.log('Full Payload:', payload);
 
       const url = isEditMode && editingTransaction
-        ? `http://localhost:5001/api/transactions/${editingTransaction.id}`
-        : 'http://localhost:5001/api/transactions';
+        ? `${process.env.NEXT_PUBLIC_API_URL}/transactions/${editingTransaction.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/transactions`;
 
       const method = isEditMode ? 'PUT' : 'POST';
 
@@ -367,7 +367,7 @@ export default function Dashboard() {
   const handleEditTransaction = async (transaction: RecentTransaction) => {
     try {
       // Fetch full transaction details
-      const response = await fetch(`http://localhost:5001/api/transactions/${transaction.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/transactions/${transaction.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -459,7 +459,7 @@ export default function Dashboard() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5001/api/transactions/${transactionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/transactions/${transactionId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

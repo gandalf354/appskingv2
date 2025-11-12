@@ -134,7 +134,7 @@ export default function Projects() {
       if (selectedStatus) params.append('status', selectedStatus);
       if (selectedCategory) params.append('category_id', selectedCategory);
 
-      const response = await fetch(`http://localhost:5001/api/projects?${params}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects?${params}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
@@ -203,7 +203,7 @@ export default function Projects() {
       
       if (!authToken) return;
       
-      const response = await fetch('http://localhost:5001/api/categories', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
@@ -321,7 +321,7 @@ export default function Projects() {
         authToken = localStorage.getItem('token');
       }
 
-      const response = await fetch(`http://localhost:5001/api/projects/${editingProject.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${editingProject.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -358,7 +358,7 @@ export default function Projects() {
         authToken = localStorage.getItem('token');
       }
 
-      const response = await fetch(`http://localhost:5001/api/projects/${editingProject.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${editingProject.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken}`,

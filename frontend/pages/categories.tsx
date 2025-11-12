@@ -58,7 +58,7 @@ export default function Categories() {
         return;
       }
 
-      const response = await fetch('http://localhost:5001/api/categories', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
@@ -111,10 +111,10 @@ export default function Categories() {
       let url: string;
       if (isEdit) {
         const categoryType = editingCategory.type === 'project' ? 'projects' : 'transactions';
-        url = `http://localhost:5001/api/categories/${categoryType}/${editingCategory.id}`;
+        url = `${process.env.NEXT_PUBLIC_API_URL}/categories/${categoryType}/${editingCategory.id}`;
       } else {
         // For new categories, default to transactions (you may want to add a type selector)
-        url = 'http://localhost:5001/api/categories/transactions';
+        url = `${process.env.NEXT_PUBLIC_API_URL}/categories/transactions`;
       }
       
       const method = isEdit ? 'PUT' : 'POST';
@@ -169,7 +169,7 @@ export default function Categories() {
 
       // Determine the correct endpoint based on category type
       const categoryType = category.type === 'project' ? 'projects' : 'transactions';
-      const url = `http://localhost:5001/api/categories/${categoryType}/${category.id}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/categories/${categoryType}/${category.id}`;
 
       const response = await fetch(url, {
         method: 'DELETE',

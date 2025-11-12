@@ -73,7 +73,7 @@ export default function EditProject() {
   const fetchProject = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/projects/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -110,7 +110,7 @@ export default function EditProject() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/categories/projects', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/projects`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -143,7 +143,7 @@ export default function EditProject() {
         category_id: formData.category_id ? parseInt(formData.category_id) : null
       };
 
-      const response = await fetch(`http://localhost:5001/api/projects/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -175,7 +175,7 @@ export default function EditProject() {
     try {
       setDeleting(true);
       
-      const response = await fetch(`http://localhost:5001/api/projects/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

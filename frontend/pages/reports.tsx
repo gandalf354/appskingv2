@@ -123,7 +123,7 @@ export default function Reports() {
 
       // Fetch overall cashflow
       const overallResponse = await fetch(
-        `http://localhost:5001/api/reports/cashflow/overall?${new URLSearchParams(dateFilter)}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/reports/cashflow/overall?${new URLSearchParams(dateFilter)}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -139,7 +139,7 @@ export default function Reports() {
 
       // Fetch project cashflows
       const projectResponse = await fetch(
-        `http://localhost:5001/api/reports/cashflow/projects?${new URLSearchParams(dateFilter)}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/reports/cashflow/projects?${new URLSearchParams(dateFilter)}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -189,7 +189,7 @@ export default function Reports() {
       });
 
       const response = await fetch(
-        `http://localhost:5001/api/transactions?${params}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/transactions?${params}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -240,7 +240,7 @@ export default function Reports() {
   // Fetch helper functions (duplicated from Dashboard)
   const fetchProjects = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/projects?limit=1000', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects?limit=1000`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -257,7 +257,7 @@ export default function Reports() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/categories', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -274,7 +274,7 @@ export default function Reports() {
 
   const fetchPaymentMethods = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/payment-methods', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment-methods`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -315,7 +315,7 @@ export default function Reports() {
     
     try {
       setLoadingProjectSummary(true);
-      const response = await fetch(`http://localhost:5001/api/projects/${projectId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${projectId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -423,7 +423,7 @@ export default function Reports() {
       closeDetailModal();
       
       // Fetch full transaction details
-      const response = await fetch(`http://localhost:5001/api/transactions/${transactionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/transactions/${transactionId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -526,8 +526,8 @@ export default function Reports() {
       };
 
       const url = isEditMode && editingTransaction
-        ? `http://localhost:5001/api/transactions/${editingTransaction.id}`
-        : 'http://localhost:5001/api/transactions';
+        ? `${process.env.NEXT_PUBLIC_API_URL}/transactions/${editingTransaction.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/transactions`;
 
       const method = isEditMode ? 'PUT' : 'POST';
 
@@ -564,7 +564,7 @@ export default function Reports() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/transactions/${transactionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/transactions/${transactionId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

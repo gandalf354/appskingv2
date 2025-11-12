@@ -64,7 +64,7 @@ export default function CreateProject() {
       
       if (!authToken) return;
       
-      const response = await fetch('http://localhost:5001/api/categories', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
@@ -104,7 +104,7 @@ export default function CreateProject() {
         authToken = localStorage.getItem('token');
       }
 
-      const response = await fetch('http://localhost:5001/api/projects', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,

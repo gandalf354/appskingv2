@@ -84,7 +84,7 @@ export default function AuditPage() {
       if (endDate) params.append('end_date', endDate);
 
       const response = await fetch(
-        `http://localhost:5001/api/audit-logs?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/audit-logs?${params.toString()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -113,7 +113,7 @@ export default function AuditPage() {
       if (endDate) params.append('end_date', endDate);
 
       const response = await fetch(
-        `http://localhost:5001/api/audit-logs/stats?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/audit-logs/stats?${params.toString()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -143,7 +143,7 @@ export default function AuditPage() {
     try {
       setDeleting(logId);
       const response = await fetch(
-        `http://localhost:5001/api/audit-logs/${logId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/audit-logs/${logId}`,
         {
           method: 'DELETE',
           headers: {
