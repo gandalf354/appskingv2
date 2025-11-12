@@ -11,7 +11,7 @@ services:
       - DB_PASSWORD=
       - DB_NAME=
       - JWT_SECRET=
-      - FRONTEND_URL=http://localhost:${FRONTEND_PORT:-3322}
+      - FRONTEND_URL=https://apps.kingofficial.asia
     volumes:
       - backend_uploads:/app/uploads
     ports:
