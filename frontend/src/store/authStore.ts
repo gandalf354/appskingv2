@@ -26,14 +26,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   login: async (credentials: LoginRequest) => {
     console.log('🔄 Starting login process with:', { username: credentials.username });
     set({ isLoading: true, error: null });
-    
+    const payload = {
+      username: credentials.username?.trim() || '',
+      password: credentials.password,
+    };
     try {
       console.log('🌐 Making API request to:', '/auth/login');
       const response = await apiClient.post<{
         message: string;
         token: string;
         user: User;
-      }>('/auth/login', credentials);
+      }>('/auth/login', payload);
 
       console.log('✅ API response received:', response);
       const { token, user } = response;
