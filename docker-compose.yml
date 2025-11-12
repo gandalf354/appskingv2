@@ -11,11 +11,11 @@ services:
       - DB_PASSWORD=
       - DB_NAME=
       - JWT_SECRET=
-      - FRONTEND_URL=http://localhost:3001
+      - FRONTEND_URL=http://localhost:${FRONTEND_PORT:-3322}
     volumes:
       - backend_uploads:/app/uploads
     ports:
-      - "5002:5001"
+      - "${BACKEND_PORT:-5522}:5001"
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:5001/api/health"]
       interval: 10s
@@ -31,7 +31,7 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://backend:5001/api
     ports:
-      - "3001:3000"
+      - "${FRONTEND_PORT:-3322}:3000"
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
       interval: 10s
