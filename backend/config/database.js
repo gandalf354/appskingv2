@@ -1,6 +1,10 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+const useSSL = process.env.DB_SSL === 'true';
+const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false';
+const sslConfig = useSSL ? { rejectUnauthorized } : false;
+
 // Create connection pool using TCP connection to phpMyAdmin
 const pool = mysql.createPool({
   host: process.env.DB_HOST || '127.0.0.1',
@@ -12,7 +16,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   charset: 'utf8mb4',
-  ssl: false,
+  ssl: sslConfig,
   timezone: '+07:00' // Asia/Jakarta timezone
 });
 
