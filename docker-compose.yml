@@ -29,7 +29,7 @@ services:
     container_name: appsking_frontend
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://backend:5001/api
+      - NEXT_PUBLIC_API_URL=/api
     ports:
       - "${FRONTEND_PORT:-3322}:3000"
     healthcheck:
