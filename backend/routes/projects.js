@@ -90,7 +90,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
       FROM projects p
       LEFT JOIN project_categories pc ON p.category_id = pc.id
       WHERE p.id = ?
-    `, [req.params.id, req.user.id]);
+    `, [req.params.id]);
 
     if (projects.length === 0) {
       return res.status(404).json({ error: 'Project not found' });
