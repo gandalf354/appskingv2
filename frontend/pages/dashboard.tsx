@@ -389,12 +389,10 @@ export default function Dashboard() {
 
         setTransactionType(data.type);
         
-        // Choose expense type based on items from API
+        // Always open expense in detailed mode; populate items if available
         if (data.type === 'expense') {
-          console.log("🔍 Expense type:", data.type);
+          setExpenseType('detailed');
           if (Array.isArray(data.items) && data.items.length > 0) {
-            setExpenseType('detailed');
-            console.log("expense types :", expenseType)
             setDetailItems(data.items.map((item: any) => ({
               item_name: item.item_name || '',
               quantity: item.quantity || 1,
@@ -403,7 +401,13 @@ export default function Dashboard() {
               subtotal: parseFloat(item.total_price || 0)
             })));
           } else {
-            setExpenseType('simple');
+            setDetailItems([{
+              item_name: '',
+              quantity: 1,
+              unit: 'Buah',
+              unit_price: 0,
+              subtotal: 0
+            }]);
           }
         }
         
