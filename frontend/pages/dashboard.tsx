@@ -379,18 +379,18 @@ export default function Dashboard() {
         // Set edit mode
         setIsEditMode(true);
         setEditingTransaction(transaction);
-        setTransactionType(transaction.type);
+        setTransactionType(data.type);
         
-        // Set expense type based on whether transaction has items or not
-        if (transaction.type === 'expense') {
-          if (data.items && data.items.length > 0) {
+        // Choose expense type based on items from API
+        if (data.type === 'expense') {
+          if (Array.isArray(data.items) && data.items.length > 0) {
             setExpenseType('detailed');
             setDetailItems(data.items.map((item: any) => ({
               item_name: item.item_name || '',
               quantity: item.quantity || 1,
               unit: item.unit || 'Buah',
               unit_price: parseFloat(item.unit_price || 0),
-              subtotal: parseFloat(item.total_price || 0) // Backend sends 'total_price', frontend uses 'subtotal'
+              subtotal: parseFloat(item.total_price || 0)
             })));
           } else {
             setExpenseType('simple');
