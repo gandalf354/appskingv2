@@ -376,15 +376,25 @@ export default function Dashboard() {
       if (response.ok) {
         const data = await response.json();
         
+        console.log('🔍 Fetched transaction data for editing:', data);
+
         // Set edit mode
         setIsEditMode(true);
+
+        console.log("🔍 Transaction data from parameter:", transaction);
+
         setEditingTransaction(transaction);
+
+        console.log("🔍 Transaction type from API:", data.type);
+
         setTransactionType(data.type);
         
         // Choose expense type based on items from API
         if (data.type === 'expense') {
+          console.log("🔍 Expense type:", data.type);
           if (Array.isArray(data.items) && data.items.length > 0) {
             setExpenseType('detailed');
+            console.log("expense types :", expenseType)
             setDetailItems(data.items.map((item: any) => ({
               item_name: item.item_name || '',
               quantity: item.quantity || 1,
