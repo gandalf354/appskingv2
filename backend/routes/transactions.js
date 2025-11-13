@@ -125,14 +125,14 @@ router.get('/', authenticateToken, async (req, res) => {
       }
     }
 
-    // Format transaction_date to YYYY-MM-DD for all transactions to avoid timezone issues
     const formattedTransactions = transactions.map(t => {
-      if (t.transaction_date) {
-        const date = new Date(t.transaction_date);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        t.transaction_date = `${year}-${month}-${day}`;
+      const td = t.transaction_date;
+      if (td) {
+        if (typeof td === 'string') {
+          t.transaction_date = td.split('T')[0];
+        } else if (td && typeof td.toISOString === 'function') {
+          t.transaction_date = td.toISOString().split('T')[0];
+        }
       }
       return t;
     });
@@ -215,14 +215,14 @@ router.get('/:id', authenticateToken, async (req, res) => {
       [req.params.id]
     );
 
-    // Format transaction_date to YYYY-MM-DD to avoid timezone issues
     const transactionData = { ...transactions[0] };
     if (transactionData.transaction_date) {
-      const date = new Date(transactionData.transaction_date);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      transactionData.transaction_date = `${year}-${month}-${day}`;
+      const td = transactionData.transaction_date;
+      if (typeof td === 'string') {
+        transactionData.transaction_date = td.split('T')[0];
+      } else if (td && typeof td.toISOString === 'function') {
+        transactionData.transaction_date = td.toISOString().split('T')[0];
+      }
     }
 
     const transaction = {
