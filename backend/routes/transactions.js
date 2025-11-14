@@ -401,13 +401,12 @@ router.post('/', authenticateToken, upload.single('receipt'), async (req, res) =
       for (const item of itemsArray) {
         console.log('Inserting item:', item);
         await executeQuery(`
-          INSERT INTO transaction_items (transaction_id, item_name, quantity, unit, unit_price, total_price)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO transaction_items (transaction_id, item_name, quantity, unit_price, total_price)
+          VALUES (?, ?, ?, ?, ?)
         `, [
           transactionId,
           item.item_name,
           item.quantity,
-          item.unit || 'Buah',
           item.unit_price,
           item.subtotal
         ]);
@@ -628,10 +627,9 @@ router.put('/:id', authenticateToken, upload.single('receipt'), async (req, res)
         // Track item changes for audit (only if user role)
         if (req.user.role === 'user' && Array.isArray(itemsArray) && itemsArray.length > 0) {
           // Compare old vs new items
-          const oldItemsMap = oldItems.map(item => ({
+        const oldItemsMap = oldItems.map(item => ({
             name: item.item_name,
             qty: parseFloat(item.quantity),
-            unit: item.unit,
             price: parseFloat(item.unit_price),
             subtotal: parseFloat(item.total_price)
           }));
@@ -639,7 +637,6 @@ router.put('/:id', authenticateToken, upload.single('receipt'), async (req, res)
           const newItemsMap = itemsArray.map(item => ({
             name: item.item_name,
             qty: parseFloat(item.quantity),
-            unit: item.unit || 'Buah',
             price: parseFloat(item.unit_price),
             subtotal: parseFloat(item.subtotal)
           }));
@@ -647,7 +644,7 @@ router.put('/:id', authenticateToken, upload.single('receipt'), async (req, res)
           // Check for added items
           newItemsMap.forEach((newItem, index) => {
             if (index >= oldItemsMap.length) {
-              itemChanges.push(`TAMBAH_ITEM::${newItem.name}||${newItem.qty}||${newItem.unit}||${newItem.price}||${newItem.subtotal}`);
+              itemChanges.push(`TAMBAH_ITEM::${newItem.name}||${newItem.qty}||${newItem.price}||${newItem.subtotal}`);
             }
           });
           
@@ -658,14 +655,13 @@ router.put('/:id', authenticateToken, upload.single('receipt'), async (req, res)
               const itemChanged = 
                 oldItem.name !== newItem.name ||
                 oldItem.qty !== newItem.qty ||
-                oldItem.unit !== newItem.unit ||
                 oldItem.price !== newItem.price ||
                 oldItem.subtotal !== newItem.subtotal;
               
               if (itemChanged) {
                 itemChanges.push(
-                  `UBAH_ITEM::${oldItem.name}||${oldItem.qty}||${oldItem.unit}||${oldItem.price}||${oldItem.subtotal}` +
-                  `>>>${newItem.name}||${newItem.qty}||${newItem.unit}||${newItem.price}||${newItem.subtotal}`
+                  `UBAH_ITEM::${oldItem.name}||${oldItem.qty}||${oldItem.price}||${oldItem.subtotal}` +
+                  `>>>${newItem.name}||${newItem.qty}||${newItem.price}||${newItem.subtotal}`
                 );
               }
             }
@@ -675,7 +671,7 @@ router.put('/:id', authenticateToken, upload.single('receipt'), async (req, res)
           if (oldItemsMap.length > newItemsMap.length) {
             for (let i = newItemsMap.length; i < oldItemsMap.length; i++) {
               const removedItem = oldItemsMap[i];
-              itemChanges.push(`HAPUS_ITEM::${removedItem.name}||${removedItem.qty}||${removedItem.unit}||${removedItem.price}||${removedItem.subtotal}`);
+              itemChanges.push(`HAPUS_ITEM::${removedItem.name}||${removedItem.qty}||${removedItem.price}||${removedItem.subtotal}`);
             }
           }
         }
@@ -689,15 +685,14 @@ router.put('/:id', authenticateToken, upload.single('receipt'), async (req, res)
           for (const item of itemsArray) {
             console.log('Inserting updated item:', item);
             await executeQuery(`
-              INSERT INTO transaction_items (transaction_id, item_name, quantity, unit, unit_price, total_price)
-              VALUES (?, ?, ?, ?, ?, ?)
+              INSERT INTO transaction_items (transaction_id, item_name, quantity, unit_price, total_price)
+              VALUES (?, ?, ?, ?, ?)
             `, [
               req.params.id, 
-              item.item_name,           // Frontend sends 'item_name', matches DB column
-              item.quantity, 
-              item.unit || 'Buah',      // Frontend sends 'unit'
-              item.unit_price, 
-              item.subtotal             // Frontend sends 'subtotal', maps to 'total_price'
+              item.item_name,
+              item.quantity,
+              item.unit_price,
+              item.subtotal
             ]);
             console.log('✅ Updated item inserted successfully');
           }
