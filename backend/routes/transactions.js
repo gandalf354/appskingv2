@@ -379,47 +379,45 @@ router.post('/', authenticateToken, upload.single('receipt'), async (req, res) =
 
     const transactionId = result.insertId;
 
-    // Insert transaction items if provided
     console.log('=== ITEMS PARAMETER CHECK ===');
     console.log('items received:', items);
     console.log('items type:', typeof items);
     console.log('items exists:', !!items);
-    
+    let itemsArray = [];
     if (items) {
       console.log('✅ Items parameter exists, attempting to parse...');
       try {
-        const itemsArray = JSON.parse(items);
+        itemsArray = typeof items === 'string' ? JSON.parse(items) : items;
         console.log('✅ Items parsed successfully:', itemsArray);
-        console.log('Items array length:', itemsArray.length);
+        console.log('Items array length:', Array.isArray(itemsArray) ? itemsArray.length : 0);
         console.log('Is array:', Array.isArray(itemsArray));
-        
-        if (Array.isArray(itemsArray) && itemsArray.length > 0) {
-          console.log('✅ Starting items insertion...');
-          for (const item of itemsArray) {
-            console.log('Inserting item:', item);
-            await executeQuery(`
-              INSERT INTO transaction_items (transaction_id, item_name, quantity, unit, unit_price, total_price)
-              VALUES (?, ?, ?, ?, ?, ?)
-            `, [
-              transactionId, 
-              item.item_name,    // Frontend sends 'item_name', matches DB column
-              item.quantity, 
-              item.unit || 'Buah',  // Frontend sends 'unit'
-              item.unit_price, 
-              item.subtotal      // Frontend sends 'subtotal', maps to 'total_price'
-            ]);
-            console.log('✅ Item inserted successfully');
-          }
-          console.log(`✅ Inserted ${itemsArray.length} transaction items`);
-        } else {
-          console.log('⚠️ Items array is empty or not an array');
-        }
       } catch (parseError) {
         console.error('❌ Error parsing items:', parseError);
         console.error('Items value that failed to parse:', items);
       }
-    } else {
+    }
+    if (Array.isArray(itemsArray) && itemsArray.length > 0) {
+      console.log('✅ Starting items insertion...');
+      for (const item of itemsArray) {
+        console.log('Inserting item:', item);
+        await executeQuery(`
+          INSERT INTO transaction_items (transaction_id, item_name, quantity, unit, unit_price, total_price)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `, [
+          transactionId,
+          item.item_name,
+          item.quantity,
+          item.unit || 'Buah',
+          item.unit_price,
+          item.subtotal
+        ]);
+        console.log('✅ Item inserted successfully');
+      }
+      console.log(`✅ Inserted ${itemsArray.length} transaction items`);
+    } else if (!items) {
       console.log('⚠️ No items parameter received');
+    } else {
+      console.log('⚠️ Items array is empty or not an array');
     }
 
     // Save audit log if user role is 'user' and transaction_date > 2 days from now
@@ -608,12 +606,10 @@ router.put('/:id', authenticateToken, upload.single('receipt'), async (req, res)
       req.params.id
     ]);
 
-    // Update transaction items
     console.log('=== UPDATE ITEMS PARAMETER CHECK ===');
     console.log('items received:', items);
     console.log('items type:', typeof items);
     
-    // Get old items for audit comparison
     const oldItems = await executeQuery(
       'SELECT * FROM transaction_items WHERE transaction_id = ? ORDER BY id',
       [req.params.id]
@@ -621,15 +617,16 @@ router.put('/:id', authenticateToken, upload.single('receipt'), async (req, res)
     
     let itemChanges = [];
     
+    let itemsArray = [];
     if (items) {
       try {
         console.log('✅ Items parameter exists for update, attempting to parse...');
-        const itemsArray = JSON.parse(items);
+        itemsArray = typeof items === 'string' ? JSON.parse(items) : items;
         console.log('✅ Items parsed successfully:', itemsArray);
-        console.log('Items array length:', itemsArray.length);
+        console.log('Items array length:', Array.isArray(itemsArray) ? itemsArray.length : 0);
         
         // Track item changes for audit (only if user role)
-        if (req.user.role === 'user' && itemsArray.length > 0) {
+        if (req.user.role === 'user' && Array.isArray(itemsArray) && itemsArray.length > 0) {
           // Compare old vs new items
           const oldItemsMap = oldItems.map(item => ({
             name: item.item_name,
