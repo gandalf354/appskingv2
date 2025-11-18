@@ -1136,15 +1136,17 @@ export default function Reports() {
                                               // Parse format: "Nama Item - Qty: X.XX - Harga: Rp X.XXX.XXX - Subtotal: Rp X.XXX.XXX"
                                               // Updated regex to handle decimal quantities (e.g., 1.00, 2.50)
                                               const match = line.match(/^(.+?)\s*-\s*Qty:\s*([\d,.]+)\s*-\s*Harga:\s*Rp\s*([\d,.]+)\s*-\s*Subtotal:\s*Rp\s*([\d,.]+)/);
-                                              
                                               if (match) {
                                                 const [, itemName, qty, price, subtotal] = match;
+                                                // Format price & subtotal with 3-digit separator
+                                                const priceFormatted = Number(price.replace(/\./g, '').replace(/,/g, '.')).toLocaleString('id-ID');
+                                                const subtotalFormatted = Number(subtotal.replace(/\./g, '').replace(/,/g, '.')).toLocaleString('id-ID');
                                                 return (
                                                   <tr key={idx} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                                                     <td className="px-2 py-1.5">{itemName}</td>
                                                     <td className="px-2 py-1.5 text-center">{qty}</td>
-                                                    <td className="px-2 py-1.5 text-right">Rp {price}</td>
-                                                    <td className="px-2 py-1.5 text-right font-medium">Rp {subtotal}</td>
+                                                    <td className="px-2 py-1.5 text-right">Rp {priceFormatted}</td>
+                                                    <td className="px-2 py-1.5 text-right font-medium">Rp {subtotalFormatted}</td>
                                                   </tr>
                                                 );
                                               }

@@ -33,6 +33,21 @@ router.get('/', authenticateToken, async (req, res) => {
     }
     query += ' ORDER BY t.transaction_date DESC, t.created_at DESC';
     const transactions = await executeQuery(query, params);
+    // Ambil detail barang/item untuk setiap transaksi
+    for (let transaction of transactions) {
+      const items = await executeQuery(
+        'SELECT * FROM transaction_items WHERE transaction_id = ? ORDER BY id',
+        [transaction.id]
+      );
+      if (items && items.length > 0) {
+        // Format items sebagai string agar frontend bisa langsung render
+        transaction.items = items.map(item => 
+          `${item.item_name} - Qty: ${item.quantity} - Harga: Rp ${item.unit_price.toLocaleString('id-ID')} - Subtotal: Rp ${item.total_price.toLocaleString('id-ID')}`
+        ).join('\n');
+      } else {
+        transaction.items = null;
+      }
+    }
     console.log('[DEBUG] /expense-details result count:', transactions.length);
     if (transactions.length === 0) {
       console.log('[DEBUG] Tidak ada transaksi ditemukan untuk', { project_id, reference_number });
