@@ -7,8 +7,8 @@ const router = express.Router();
 router.get('/', authenticateToken, async (req, res) => {
   try {
     // Check if user is admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied. Admin only.' });
+    if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+      return res.status(403).json({ error: 'Access denied. Admin or manager only.' });
     }
 
     const { 
@@ -135,8 +135,8 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/stats', authenticateToken, async (req, res) => {
   try {
     // Check if user is admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied. Admin only.' });
+    if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+      return res.status(403).json({ error: 'Access denied. Admin or manager only.' });
     }
 
     const { start_date, end_date } = req.query;
@@ -191,8 +191,8 @@ router.get('/stats', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     // Check if user is admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied. Admin only.' });
+    if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+      return res.status(403).json({ error: 'Access denied. Admin or manager only.' });
     }
 
     const logId = parseInt(req.params.id);

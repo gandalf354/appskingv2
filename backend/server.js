@@ -39,6 +39,8 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/payment-methods', require('./routes/paymentMethods'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/income-details', require('./routes/incomeDetails'));
+app.use('/api/expense-details', require('./routes/expenseDetails'));
 app.use('/api/audit-logs', require('./routes/auditLogs'));
 // Debug routes (local/dev only)
 app.use('/api/debug', require('./routes/debug'));

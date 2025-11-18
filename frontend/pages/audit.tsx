@@ -58,14 +58,14 @@ export default function AuditPage() {
   useEffect(() => {
     if (mounted && !user) {
       router.push('/login');
-    } else if (mounted && user && user.role !== 'admin') {
-      toast.error('Akses ditolak. Halaman ini hanya untuk admin.');
+    } else if (mounted && user && user.role !== 'admin' && user.role !== 'manager') {
+      toast.error('Akses ditolak. Halaman ini hanya untuk admin atau manager.');
       router.push('/dashboard');
     }
   }, [mounted, user, router]);
 
   useEffect(() => {
-    if (mounted && user && user.role === 'admin') {
+    if (mounted && user && (user.role === 'admin' || user.role === 'manager')) {
       fetchLogs();
       fetchStats();
     }

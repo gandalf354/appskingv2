@@ -6,6 +6,9 @@ import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../src/utils/numberFormat';
 import { formatDateDisplay } from '../src/utils/dateUtils';
 
+
+
+
 interface CashflowData {
   total_income: number;
   total_expense: number;
@@ -40,11 +43,41 @@ interface TransactionDetail {
   items?: string;
   project_name?: string;
 }
-
 export default function Reports() {
+  // State untuk ekspansi project
+  const [expandedProjectId, setExpandedProjectId] = useState<number | null>(null);
+  // State untuk loading dan data summary kategori per project
+  const [loadingCategorySummary, setLoadingCategorySummary] = useState(false);
+  const [categorySummary, setCategorySummary] = useState<{
+    income: any[];
+    expense: any[];
+  } | null>(null);
+
+  // Fungsi untuk mengambil summary kategori per project
+  const fetchCategorySummary = async (projectId: number) => {
+    setLoadingCategorySummary(true);
+    try {
+      // Fetch summary per project sesuai backend baru
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reports/cashflow/project-category-summary?project_id=${projectId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Data backend: { expense: [...], income: [...] }
+        setCategorySummary({ income: data.income || [], expense: data.expense || [] });
+      } else {
+        setCategorySummary({ income: [], expense: [] });
+      }
+    } catch (e) {
+      setCategorySummary({ income: [], expense: [] });
+    }
+    setLoadingCategorySummary(false);
+  };
   const router = useRouter();
   const { user, token, checkAuth } = useAuthStore();
-  
+
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [overallCashflow, setOverallCashflow] = useState<CashflowData | null>(null);
@@ -53,6 +86,7 @@ export default function Reports() {
     start_date: '',
     end_date: ''
   });
+  // ...existing code...
   
   // Transaction Detail Modal
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -752,40 +786,138 @@ export default function Reports() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {projectCashflows.map((project) => (
-                      <tr key={project.project_id} className="hover:bg-gray-50">
-                        <td className="px-3 sm:px-4 py-2.5 sm:py-3">
-                          <div className="text-xs sm:text-sm font-medium text-gray-900">
-                            {project.project_name}
-                          </div>
-                          {project.client_name && (
-                            <div className="text-xs text-gray-500">
-                              {project.client_name}
+                      <>
+                        <tr key={project.project_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
+                          if (expandedProjectId === project.project_id) {
+                            setExpandedProjectId(null);
+                          } else {
+                            setExpandedProjectId(project.project_id);
+                            fetchCategorySummary(project.project_id);
+                          }
+                        }}>
+                          <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs sm:text-sm font-medium text-gray-900">{project.project_name}</span>
+                              {expandedProjectId === project.project_id && (
+                                <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                              )}
                             </div>
-                          )}
-                        </td>
-                        <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-900">
-                          {formatCurrency(project.budget)}
-                        </td>
-                        <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-green-600">
-                          {formatCurrency(project.total_income)}
-                        </td>
-                        <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-red-600">
-                          {formatCurrency(project.total_expense)}
-                        </td>
-                        <td className={`px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-bold ${
-                          project.net_cashflow >= 0 ? 'text-blue-600' : 'text-orange-600'
-                        }`}>
-                          {formatCurrency(project.net_cashflow)}
-                        </td>
-                        <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-center">
-                          <button
-                            onClick={() => fetchTransactionDetails(project)}
-                            className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                          >
-                            {project.transaction_count}
-                          </button>
-                        </td>
-                      </tr>
+                            {project.client_name && (
+                              <div className="text-xs text-gray-500">{project.client_name}</div>
+                            )}
+                          </td>
+                          <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-900">{formatCurrency(project.budget)}</td>
+                          <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-green-600">{formatCurrency(project.total_income)}</td>
+                          <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-red-600">{formatCurrency(project.total_expense)}</td>
+                          <td className={`px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-bold ${project.net_cashflow >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>{formatCurrency(project.net_cashflow)}</td>
+                          <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-center">
+                            <button
+                              onClick={e => { e.stopPropagation(); fetchTransactionDetails(project); }}
+                              className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                            >
+                              {project.transaction_count}
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedProjectId === project.project_id && (
+                          <tr>
+                            <td colSpan={6} className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+                              {loadingCategorySummary ? (
+                                <div className="text-center text-xs text-blue-600">Memuat summary kategori...</div>
+                              ) : categorySummary ? (
+                                <>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <h4 className="text-xs font-semibold text-green-700 mb-2">Pemasukan per Kategori</h4>
+                                      <ul className="space-y-1">
+                                        {categorySummary.income.length === 0 && <li className="text-xs text-gray-400">Tidak ada pemasukan</li>}
+                                        {categorySummary.income.length > 0 && categorySummary.income.map((cat: any, idx: number) => (
+                                          <li key={cat.category_name + idx} className="flex justify-between text-xs items-center">
+                                            <span>{cat.category_name || '-'}</span>
+                                            <span className="font-semibold text-green-700">{formatCurrency(cat.total_amount)}</span>
+                                            <span className="text-xs text-gray-500 cursor-pointer underline hover:text-green-900" onClick={async () => {
+                                              setLoadingDetails(true);
+                                              setShowDetailModal(true);
+                                              setSelectedProject(project);
+                                              try {
+                                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/income-details?project_id=${project.project_id}&category_name=${encodeURIComponent(cat.category_name)}`,
+                                                  {
+                                                    headers: {
+                                                      'Authorization': `Bearer ${token}`
+                                                    }
+                                                  }
+                                                );
+                                                if (res.ok) {
+                                                  const data = await res.json();
+                                                  setTransactionDetails(data.transactions || []);
+                                                } else {
+                                                  setTransactionDetails([]);
+                                                }
+                                              } catch {
+                                                setTransactionDetails([]);
+                                              }
+                                              setLoadingDetails(false);
+                                            }}>{cat.jumlah}x</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                    <div>
+                                      <h4 className="text-xs font-semibold text-red-700 mb-2">Pengeluaran per Reference Number</h4>
+                                      <ul className="space-y-1">
+                                        {(!categorySummary.expense || categorySummary.expense.length === 0) && (
+                                          <li className="text-xs text-gray-400">Tidak ada pengeluaran</li>
+                                        )}
+                                        {categorySummary.expense && categorySummary.expense.length > 0 && (
+                                          <>
+                                            <li className="flex font-bold text-xs text-gray-700 border-b border-gray-200 pb-1">
+                                              <span className="w-1/3">Reference Number</span>
+                                              <span className="w-1/3 text-right">Total Amount</span>
+                                              <span className="w-1/3 text-right">Jumlah</span>
+                                            </li>
+                                            {categorySummary.expense.map((row: any, idx: number) => (
+                                              <li key={row.reference_number || idx} className="flex text-xs items-center border-b border-gray-100 py-1">
+                                                <span className="w-1/3 font-semibold text-gray-900">{row.reference_number || '-'}</span>
+                                                <span className="w-1/3 text-right text-red-700">{formatCurrency(row.total_amount)}</span>
+                                                <span className="w-1/3 text-right cursor-pointer underline hover:text-red-900" onClick={async () => {
+                                                  setLoadingDetails(true);
+                                                  setShowDetailModal(true);
+                                                  setSelectedProject(project);
+                                                  try {
+                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/expense-details?project_id=${project.project_id}&reference_number=${encodeURIComponent(row.reference_number)}`,
+                                                      {
+                                                        headers: {
+                                                          'Authorization': `Bearer ${token}`
+                                                        }
+                                                      }
+                                                    );
+                                                    if (res.ok) {
+                                                      const data = await res.json();
+                                                      setTransactionDetails(data.transactions || []);
+                                                    } else {
+                                                      setTransactionDetails([]);
+                                                    }
+                                                  } catch {
+                                                    setTransactionDetails([]);
+                                                  }
+                                                  setLoadingDetails(false);
+                                                }}>{row.jumlah}x</span>
+                                              </li>
+                                            ))}
+                                          </>
+                                        )}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                  <div className="mt-4 text-xs text-gray-700 font-semibold text-right">
+                                    Total Transaksi: {project.transaction_count}
+                                  </div>
+                                </>
+                              ) : null}
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     ))}
                   </tbody>
                 </table>
@@ -878,7 +1010,6 @@ export default function Reports() {
                       {transactions.map((transaction) => {
                         const isIncome = transaction.type === 'income';
                         const isExpanded = expandedTransactions.has(transaction.id);
-                        
                         return (
                           <div key={transaction.id} className="bg-gray-50 rounded-lg overflow-hidden">
                             {/* Main Transaction Row */}
@@ -894,27 +1025,30 @@ export default function Reports() {
                                 setExpandedTransactions(newExpanded);
                               }}
                             >
-                            <div className={`p-1.5 ${isIncome ? 'bg-green-100' : 'bg-red-100'} rounded-lg mr-2`}>
-                              {isIncome ? (
-                                <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                              ) : (
-                                <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 0h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-gray-900 truncate">
-                                {isIncome ? 'Pendapatan diterima' : 'Pengeluaran dicatat'}
-                              </p>
-                              <p className="text-xs text-gray-500 truncate">
-                                {transaction.project_name && `${transaction.project_name} - `}
-                                {transaction.reference_number || transaction.category_name} - {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transaction.amount)}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-1 ml-1.5 sm:ml-2">
+                              <div className={`p-1.5 ${isIncome ? 'bg-green-100' : 'bg-red-100'} rounded-lg mr-2`}>
+                                {isIncome ? (
+                                  <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                  </svg>
+                                ) : (
+                                  <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 0h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                                  <p className="text-xs font-medium text-gray-900 truncate">
+                                    {isIncome ? 'Pendapatan diterima' : 'Pengeluaran dicatat'}
+                                  </p>
+                                  <span className="text-xs text-gray-500">{formatDateDisplay(transaction.transaction_date?.split('T')[0] || '')}</span>
+                                </div>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {transaction.project_name && `${transaction.project_name} - `}
+                                  {transaction.reference_number || transaction.category_name} - {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transaction.amount)}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1 ml-1.5 sm:ml-2">
                               {/* Chevron Icon */}
                               <button
                                 className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
@@ -959,6 +1093,11 @@ export default function Reports() {
                           {/* Expanded Detail Section */}
                           {isExpanded && (
                             <div className="px-4 py-3 bg-white border-t border-gray-200 space-y-3">
+                              {/* Show transaction date and amount at the top of expanded section */}
+                              <div className="flex flex-wrap items-center gap-3 mb-2">
+                                <span className="text-xs text-gray-700 font-semibold">Tanggal: {formatDateDisplay(transaction.transaction_date?.split('T')[0] || '')}</span>
+                                <span className={`text-xs font-semibold ${isIncome ? 'text-green-600' : 'text-red-600'}`}>Jumlah: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transaction.amount)}</span>
+                              </div>
                               {/* Check if this is "Detail Lengkap" expense with items */}
                               {transaction.items ? (
                                 <>

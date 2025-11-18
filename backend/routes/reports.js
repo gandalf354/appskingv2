@@ -3,6 +3,71 @@ const { executeQuery } = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 
+// Summary pemasukan/pengeluaran per kategori untuk 1 project
+router.get('/cashflow/project-category-summary', authenticateToken, async (req, res) => {
+  try {
+    const { project_id, start_date, end_date } = req.query;
+    if (!project_id) {
+      return res.status(400).json({ error: 'project_id is required' });
+    }
+
+    // Query pengeluaran per reference_number
+    let expenseQuery = `
+      SELECT t.reference_number, SUM(t.amount) as total_amount, count(t.reference_number) as jumlah
+      FROM transactions t
+      LEFT JOIN transaction_categories tc ON t.category_id = tc.id 
+      WHERE t.description='Pengeluaran' and t.project_id = ?
+    `;
+    const expenseParams = [project_id];
+    if (start_date) {
+      expenseQuery += ' AND t.transaction_date >= ?';
+      expenseParams.push(start_date);
+    }
+    if (end_date) {
+      expenseQuery += ' AND t.transaction_date <= ?';
+      expenseParams.push(end_date);
+    }
+    expenseQuery += ' GROUP BY tc.name, t.type, t.reference_number ORDER BY tc.name ASC, t.reference_number ASC';
+
+    const expenseResults = await executeQuery(expenseQuery, expenseParams);
+    const expense = expenseResults.map(row => ({
+      reference_number: row.reference_number || null,
+      total_amount: parseFloat(row.total_amount) || 0,
+      jumlah: parseInt(row.jumlah) || 0
+    }));
+
+    // Query pemasukan per kategori
+    let incomeQuery = `
+      SELECT tc.name as category_name, SUM(t.amount) as total_amount, count(t.id) as jumlah
+      FROM transactions t
+      LEFT JOIN transaction_categories tc ON t.category_id = tc.id 
+      WHERE t.type='income' and t.project_id = ?
+    `;
+    const incomeParams = [project_id];
+    if (start_date) {
+      incomeQuery += ' AND t.transaction_date >= ?';
+      incomeParams.push(start_date);
+    }
+    if (end_date) {
+      incomeQuery += ' AND t.transaction_date <= ?';
+      incomeParams.push(end_date);
+    }
+    incomeQuery += ' GROUP BY tc.name ORDER BY tc.name ASC';
+
+    const incomeResults = await executeQuery(incomeQuery, incomeParams);
+    const income = incomeResults.map(row => ({
+      category_name: row.category_name || null,
+      total_amount: parseFloat(row.total_amount) || 0,
+      jumlah: parseInt(row.jumlah) || 0
+    }));
+
+    res.json({ expense, income });
+  } catch (error) {
+    console.error('Get project category summary error:', error);
+    res.status(500).json({ error: 'Failed to fetch project category summary' });
+  }
+});
+
 // Get overall cashflow
 router.get('/cashflow/overall', authenticateToken, async (req, res) => {
   try {

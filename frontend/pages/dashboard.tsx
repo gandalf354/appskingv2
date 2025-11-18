@@ -696,22 +696,24 @@ export default function Dashboard() {
                   </div>
                 </button>
                 
-                <button 
-                  onClick={() => router.push('/categories')}
-                  className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <div className="p-1.5 bg-purple-100 rounded-lg mr-2.5">
-                      <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                      </svg>
+                {user?.role === 'manager' && (
+                  <button 
+                    onClick={() => router.push('/categories')}
+                    className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <div className="p-1.5 bg-purple-100 rounded-lg mr-2.5">
+                        <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Kelola Kategori</p>
+                        <p className="text-xs text-gray-500">Tambah, edit, atau hapus kategori</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Kelola Kategori</p>
-                      <p className="text-xs text-gray-500">Tambah, edit, atau hapus kategori</p>
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                )}
                 
                 <button 
                   onClick={() => handleOpenTransactionModal('income')}
@@ -748,7 +750,7 @@ export default function Dashboard() {
                 </button>
 
                 {/* Log Audit Button - Admin Only */}
-                {user?.role === 'admin' && (
+                {(user?.role === 'admin' || user?.role === 'manager') && (
                   <button
                     onClick={() => router.push('/audit')}
                     className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -1211,29 +1213,40 @@ export default function Dashboard() {
                     {/* Supplier */}
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Nama Supplier/Toko
+                        Kelompok
                       </label>
                       <input
                         type="text"
                         value={transactionForm.description}
                         onChange={(e) => setTransactionForm({ ...transactionForm, description: e.target.value })}
-                        placeholder="Contoh: Toko Bangunan ABC"
+                        placeholder="Pengeluaran"
                         className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        disabled
                       />
                     </div>
 
                     {/* Receipt Number */}
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Nomor Nota/Invoice *
+                        Jenis Pengeluaran *
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={transactionForm.receipt_number}
                         onChange={(e) => setTransactionForm({ ...transactionForm, receipt_number: e.target.value })}
-                        placeholder="INV-001"
                         className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      />
+                      >
+                        <option value="">Pilih Jenis Pengeluarannya</option>
+                        <option value="Bahan Material">Bahan Material</option>
+                        <option value="Operasional">Operasional</option>
+                        <option value="Konsumsi">Konsumsi</option>
+                        <option value="Upah Tukang">Upah Tukang</option>
+                        <option value="Gaji">Gaji</option>
+                        <option value="Jasa">Jasa</option>
+                        <option value="Elektrikal">Elektrikal</option>
+                        <option value="Ojek Ibu">Ojek Ibu</option>
+                        <option value="Kiting">Kiting</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
                     </div>
                   </div>
                 )}
