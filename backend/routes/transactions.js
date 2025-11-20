@@ -114,14 +114,10 @@ router.get('/', authenticateToken, async (req, res) => {
         'SELECT * FROM transaction_items WHERE transaction_id = ? ORDER BY id',
         [transaction.id]
       );
-      
       if (items && items.length > 0) {
-        // Format items as string in the expected format
-        transaction.items = items.map(item => 
-          `${item.item_name} - Qty: ${item.quantity} - Harga: Rp ${new Intl.NumberFormat('id-ID').format(item.unit_price)} - Subtotal: Rp ${new Intl.NumberFormat('id-ID').format(item.total_price)}`
-        ).join('\n');
+        transaction.items = items;
       } else {
-        transaction.items = null;
+        transaction.items = [];
       }
     }
 
