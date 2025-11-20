@@ -635,6 +635,12 @@ export default function Reports() {
     );
   }
 
+  // Gabungkan status dari projects ke projectCashflows
+  const projectCashflowsWithStatus = projectCashflows.map(pc => {
+    const found = projects.find(p => p.id === pc.project_id);
+    return { ...pc, status: found?.status || 'Tanpa Status' };
+  });
+
   return (
     <>
       <Head>
@@ -754,137 +760,107 @@ export default function Reports() {
             )}
           </div>
 
-          {/* Project Cashflows */}
+          {/* Project Cashflows - Grouped by Status */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="p-3 sm:p-4 border-b border-gray-200">
               <h2 className="text-base font-semibold text-gray-900">🎯 Cashflow Per Project</h2>
             </div>
-            {projectCashflows.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Project
-                      </th>
-                      <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Budget
-                      </th>
-                      <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Uang Masuk
-                      </th>
-                      <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Uang Keluar
-                      </th>
-                      <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Net Cashflow
-                      </th>
-                      <th className="px-3 sm:px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Transaksi
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {projectCashflows.map((project) => (
-                      <>
-                        <tr key={project.project_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
-                          if (expandedProjectId === project.project_id) {
-                            setExpandedProjectId(null);
-                          } else {
-                            setExpandedProjectId(project.project_id);
-                            fetchCategorySummary(project.project_id);
-                          }
-                        }}>
-                          <td className="px-3 sm:px-4 py-2.5 sm:py-3">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs sm:text-sm font-medium text-gray-900">{project.project_name}</span>
-                              {expandedProjectId === project.project_id && (
-                                <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                              )}
-                            </div>
-                            {project.client_name && (
-                              <div className="text-xs text-gray-500">{project.client_name}</div>
-                            )}
-                          </td>
-                          <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-900">{formatCurrency(project.budget)}</td>
-                          <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-green-600">{formatCurrency(project.total_income)}</td>
-                          <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-red-600">{formatCurrency(project.total_expense)}</td>
-                          <td className={`px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-bold ${project.net_cashflow >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>{formatCurrency(project.net_cashflow)}</td>
-                          <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-center">
-                            <button
-                              onClick={e => { e.stopPropagation(); fetchTransactionDetails(project); }}
-                              className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                            >
-                              {project.transaction_count}
-                            </button>
-                          </td>
+            {(() => {
+              // Dapatkan semua status unik dari projectCashflowsWithStatus
+              const statusList = Array.from(new Set(projectCashflowsWithStatus.map(p => p.status || 'Tanpa Status')));
+              if (statusList.length === 0) {
+                return (
+                  <div className="text-center py-8 text-sm text-gray-500">
+                    Belum ada data project dengan transaksi
+                  </div>
+                );
+              }
+              return statusList.map(status => (
+                <div key={status} className="mb-8">
+                  <div className="bg-gray-100 px-4 py-2 font-bold text-gray-700 text-sm uppercase tracking-wide border-l-4 border-blue-400 mb-2">
+                    Status: {status}
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Project
+                          </th>
+                          <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Budget
+                          </th>
+                          <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Uang Masuk
+                          </th>
+                          <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Uang Keluar
+                          </th>
+                          <th className="px-3 sm:px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Net Cashflow
+                          </th>
+                          <th className="px-3 sm:px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Transaksi
+                          </th>
                         </tr>
-                        {expandedProjectId === project.project_id && (
-                          <tr>
-                            <td colSpan={6} className="bg-blue-50 border-b border-blue-200 px-4 py-3">
-                              {loadingCategorySummary ? (
-                                <div className="text-center text-xs text-blue-600">Memuat summary kategori...</div>
-                              ) : categorySummary ? (
-                                <>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                      <h4 className="text-xs font-semibold text-green-700 mb-2">Pemasukan per Kategori</h4>
-                                      <ul className="space-y-1">
-                                        {categorySummary.income.length === 0 && <li className="text-xs text-gray-400">Tidak ada pemasukan</li>}
-                                        {categorySummary.income.length > 0 && categorySummary.income.map((cat: any, idx: number) => (
-                                          <li key={cat.category_name + idx} className="flex justify-between text-xs items-center">
-                                            <span>{cat.category_name || '-'}</span>
-                                            <span className="font-semibold text-green-700">{formatCurrency(cat.total_amount)}</span>
-                                            <span className="text-xs text-gray-500 cursor-pointer underline hover:text-green-900" onClick={async () => {
-                                              setLoadingDetails(true);
-                                              setShowDetailModal(true);
-                                              setSelectedProject(project);
-                                              try {
-                                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/income-details?project_id=${project.project_id}&category_name=${encodeURIComponent(cat.category_name)}`,
-                                                  {
-                                                    headers: {
-                                                      'Authorization': `Bearer ${token}`
-                                                    }
-                                                  }
-                                                );
-                                                if (res.ok) {
-                                                  const data = await res.json();
-                                                  setTransactionDetails(data.transactions || []);
-                                                } else {
-                                                  setTransactionDetails([]);
-                                                }
-                                              } catch {
-                                                setTransactionDetails([]);
-                                              }
-                                              setLoadingDetails(false);
-                                            }}>{cat.jumlah}x</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                    <div>
-                                      <h4 className="text-xs font-semibold text-red-700 mb-2">Pengeluaran per Reference Number</h4>
-                                      <ul className="space-y-1">
-                                        {(!categorySummary.expense || categorySummary.expense.length === 0) && (
-                                          <li className="text-xs text-gray-400">Tidak ada pengeluaran</li>
-                                        )}
-                                        {categorySummary.expense && categorySummary.expense.length > 0 && (
-                                          <>
-                                            <li className="flex font-bold text-xs text-gray-700 border-b border-gray-200 pb-1">
-                                              <span className="w-1/3">Reference Number</span>
-                                              <span className="w-1/3 text-right">Total Amount</span>
-                                              <span className="w-1/3 text-right">Jumlah</span>
-                                            </li>
-                                            {categorySummary.expense.map((row: any, idx: number) => (
-                                              <li key={row.reference_number || idx} className="flex text-xs items-center border-b border-gray-100 py-1">
-                                                <span className="w-1/3 font-semibold text-gray-900">{row.reference_number || '-'}</span>
-                                                <span className="w-1/3 text-right text-red-700">{formatCurrency(row.total_amount)}</span>
-                                                <span className="w-1/3 text-right cursor-pointer underline hover:text-red-900" onClick={async () => {
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {projectCashflowsWithStatus.filter(p => (p.status || 'Tanpa Status') === status).map((project) => (
+                          <>
+                            <tr key={project.project_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
+                              if (expandedProjectId === project.project_id) {
+                                setExpandedProjectId(null);
+                              } else {
+                                setExpandedProjectId(project.project_id);
+                                fetchCategorySummary(project.project_id);
+                              }
+                            }}>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs sm:text-sm font-medium text-gray-900">{project.project_name}</span>
+                                  {expandedProjectId === project.project_id && (
+                                    <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                                  )}
+                                </div>
+                                {project.client_name && (
+                                  <div className="text-xs text-gray-500">{project.client_name}</div>
+                                )}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-900">{formatCurrency(project.budget)}</td>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-green-600">{formatCurrency(project.total_income)}</td>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-red-600">{formatCurrency(project.total_expense)}</td>
+                              <td className={`px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-right text-xs sm:text-sm font-bold ${project.net_cashflow >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>{formatCurrency(project.net_cashflow)}</td>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-center">
+                                <button
+                                  onClick={e => { e.stopPropagation(); fetchTransactionDetails(project); }}
+                                  className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                                >
+                                  {project.transaction_count}
+                                </button>
+                              </td>
+                            </tr>
+                            {expandedProjectId === project.project_id && (
+                              <tr>
+                                <td colSpan={6} className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+                                  {loadingCategorySummary ? (
+                                    <div className="text-center text-xs text-blue-600">Memuat summary kategori...</div>
+                                  ) : categorySummary ? (
+                                    <>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                          <h4 className="text-xs font-semibold text-green-700 mb-2">Pemasukan per Kategori</h4>
+                                          <ul className="space-y-1">
+                                            {categorySummary.income.length === 0 && <li className="text-xs text-gray-400">Tidak ada pemasukan</li>}
+                                            {categorySummary.income.length > 0 && categorySummary.income.map((cat: any, idx: number) => (
+                                              <li key={cat.category_name + idx} className="flex justify-between text-xs items-center">
+                                                <span>{cat.category_name || '-'}</span>
+                                                <span className="font-semibold text-green-700">{formatCurrency(cat.total_amount)}</span>
+                                                <span className="text-xs text-gray-500 cursor-pointer underline hover:text-green-900" onClick={async () => {
                                                   setLoadingDetails(true);
                                                   setShowDetailModal(true);
                                                   setSelectedProject(project);
                                                   try {
-                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/expense-details?project_id=${project.project_id}&reference_number=${encodeURIComponent(row.reference_number)}`,
+                                                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/income-details?project_id=${project.project_id}&category_name=${encodeURIComponent(cat.category_name)}`,
                                                       {
                                                         headers: {
                                                           'Authorization': `Bearer ${token}`
@@ -901,32 +877,74 @@ export default function Reports() {
                                                     setTransactionDetails([]);
                                                   }
                                                   setLoadingDetails(false);
-                                                }}>{row.jumlah}x</span>
+                                                }}>{cat.jumlah}x</span>
                                               </li>
                                             ))}
-                                          </>
-                                        )}
-                                      </ul>
-                                    </div>
-                                  </div>
-                                  <div className="mt-4 text-xs text-gray-700 font-semibold text-right">
-                                    Total Transaksi: {project.transaction_count}
-                                  </div>
-                                </>
-                              ) : null}
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-sm text-gray-500">
-                Belum ada data project dengan transaksi
-              </div>
-            )}
+                                          </ul>
+                                        </div>
+                                        <div>
+                                          <h4 className="text-xs font-semibold text-red-700 mb-2">Pengeluaran per Reference Number</h4>
+                                          <ul className="space-y-1">
+                                            {(!categorySummary.expense || categorySummary.expense.length === 0) && (
+                                              <li className="text-xs text-gray-400">Tidak ada pengeluaran</li>
+                                            )}
+                                            {categorySummary.expense && categorySummary.expense.length > 0 && (
+                                              <>
+                                                <li className="flex font-bold text-xs text-gray-700 border-b border-gray-200 pb-1">
+                                                  <span className="w-1/3">Reference Number</span>
+                                                  <span className="w-1/3 text-right">Total Amount</span>
+                                                  <span className="w-1/3 text-right">Jumlah</span>
+                                                </li>
+                                                {categorySummary.expense.map((row: any, idx: number) => (
+                                                  <li key={row.reference_number || idx} className="flex text-xs items-center border-b border-gray-100 py-1">
+                                                    <span className="w-1/3 font-semibold text-gray-900">{row.reference_number || '-'}</span>
+                                                    <span className="w-1/3 text-right text-red-700">{formatCurrency(row.total_amount)}</span>
+                                                    <span className="w-1/3 text-right cursor-pointer underline hover:text-red-900" onClick={async () => {
+                                                      setLoadingDetails(true);
+                                                      setShowDetailModal(true);
+                                                      setSelectedProject(project);
+                                                      try {
+                                                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/expense-details?project_id=${project.project_id}&reference_number=${encodeURIComponent(row.reference_number)}`,
+                                                          {
+                                                            headers: {
+                                                              'Authorization': `Bearer ${token}`
+                                                            }
+                                                          }
+                                                        );
+                                                        if (res.ok) {
+                                                          const data = await res.json();
+                                                          setTransactionDetails(data.transactions || []);
+                                                        } else {
+                                                          setTransactionDetails([]);
+                                                        }
+                                                      } catch {
+                                                        setTransactionDetails([]);
+                                                      }
+                                                      setLoadingDetails(false);
+                                                    }}>{row.jumlah}x</span>
+                                                  </li>
+                                                ))}
+                                              </>
+                                            )}
+                                          </ul>
+                                        </div>
+                                      </div>
+                                      <div className="mt-4 text-xs text-gray-700 font-semibold text-right">
+                                        Total Transaksi: {project.transaction_count}
+                                      </div>
+                                    </>
+                                  ) : null}
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </div>
